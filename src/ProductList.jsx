@@ -1,59 +1,71 @@
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { addItem } from './redux/CartSlice';
-import CartItem from './CartItem';
-import './ProductList.css';
+import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { addItem } from "./CartSlice.jsx";
+import CartItem from "./CartItem.jsx";
 
 function ProductList({ onHomeClick }) {
+  const cart = useSelector(state => state.cart.items);
   const dispatch = useDispatch();
-  const cart = useSelector(state => state.cart.items); // Access global cart
   const [showCart, setShowCart] = useState(false);
-  const [addedToCart, setAddedToCart] = useState({});
+  const [added, setAdded] = useState({});
 
-  const totalQuantity = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const totalCount = cart.reduce((a, c) => a + c.quantity, 0);
 
-  const plantsArray = [ /* your plants array */ ];
+  const plantsArray = [
+    {
+      category: "Indoor Plants",
+      plants: [
+        { name: "Peace Lily", cost: 300, image: "/images/peace.jpg" },
+        { name: "Snake Plant", cost: 250, image: "/images/snake.jpg" },
+      ],
+    },
+    {
+      category: "Succulents",
+      plants: [
+        { name: "Aloe Vera", cost: 200, image: "/images/aloe.jpg" },
+        { name: "Jade Plant", cost: 220, image: "/images/jade.jpg" },
+      ],
+    },
+    {
+      category: "Flowering Plants",
+      plants: [
+        { name: "Rose", cost: 350, image: "/images/rose.jpg" },
+        { name: "Orchid", cost: 450, image: "/images/orchid.jpg" },
+      ],
+    },
+  ];
 
-  const handleAddToCart = (plant) => {
+  const addToCart = plant => {
     dispatch(addItem(plant));
-    setAddedToCart(prev => ({ ...prev, [plant.name]: true }));
+    setAdded(prev => ({ ...prev, [plant.name]: true }));
   };
+
+  if (showCart) return <CartItem back={() => setShowCart(false)} />;
 
   return (
     <div>
-      <div className="navbar">
-        <div onClick={() => setShowCart(true)}>
-          Cart ({totalQuantity})
-        </div>
-      </div>
+      <header>
+        <button onClick={() => setShowCart(true)}>Cart ({totalCount})</button>
+        <button onClick={onHomeClick}>Home</button>
+      </header>
 
-      {!showCart ? (
-        <div className="product-grid">
-          {plantsArray.map(category => (
-            <div key={category.category}>
-              <h2>{category.category}</h2>
-              <div className="plants-container">
-                {category.plants.map(plant => (
-                  <div key={plant.name} className="plant-card">
-                    <img src={plant.image} alt={plant.name} />
-                    <h3>{plant.name}</h3>
-                    <p>{plant.description}</p>
-                    <p>{plant.cost}</p>
-                    <button
-                      onClick={() => handleAddToCart(plant)}
-                      disabled={addedToCart[plant.name]}
-                    >
-                      {addedToCart[plant.name] ? "Added to Cart" : "Add to Cart"}
-                    </button>
-                  </div>
-                ))}
+      {plantsArray.map(cat => (
+        <div key={cat.category}>
+          <h2>{cat.category}</h2>
+          <div style={{ display: "flex", gap: "20px" }}>
+            {cat.plants.map(p => (
+              <div key={p.name}>
+                <img src={p.image} width="100" alt={p.name} />
+                <h4>{p.name}</h4>
+                <p>₹{p.cost}</p>
+                <button disabled={added[p.name]} onClick={() => addToCart(p)}>
+                  {added[p.name] ? "Added" : "Add to Cart"}
+                </button>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      ) : (
-        <CartItem onContinueShopping={() => setShowCart(false)} />
-      )}
+      ))}
     </div>
   );
 }
